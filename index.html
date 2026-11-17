@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TamTam POS</title>
+
+    <!-- Libraries (pinned versions) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div id="envbar" hidden></div>
+    <div id="busy" hidden></div>
+    <div id="app"></div>
+
+    <!-- config.js is generated per environment by scripts/build-config.js -->
+    <script src="config.js"></script>
+    <!-- ui/main.js starts everything -->
+    <script type="module" src="ui/main.js"></script>
+</body>
+
+</html>
