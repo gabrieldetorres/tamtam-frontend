@@ -5,7 +5,7 @@
 import { $, onClick, onInput, say, sure, showError } from './kit.js';
 import { api } from '../data/api.js';
 import { loadProducts } from '../business/catalog.js';
-import { state, canMake, addToCart, changeQty, cartTotal, lineTotal, orderLines, clearOrder } from '../business/cart.js';
+import { state, canMake, servingsLeft, addToCart, changeQty, cartTotal, lineTotal, orderLines, clearOrder } from '../business/cart.js';
 import { M, esc, newRef } from '../business/format.js';
 import { register, go } from './router.js';
 import { addCustomerDialog } from './customers.js';
@@ -50,10 +50,12 @@ function drawPos() {
 function drawGrid() {
     $('#pg').innerHTML = state.products.map(p => {
         const ok = canMake(p);
+        const left = servingsLeft(p);
+        const note = !ok ? ' (out)' : left <= 5 ? ` · ${left} left` : ''; // warn when a product is running low
         return `
             <button ${ok ? '' : 'disabled'} data-click="add" data-id="${esc(p.id)}">
                 ${esc(p.name)}
-                <small>${p.size ? esc(p.size) + ' · ' : ''}${M(p.price)}${ok ? '' : ' (out)'}</small>
+                <small>${p.size ? esc(p.size) + ' · ' : ''}${M(p.price)}${note}</small>
             </button>`;
     }).join('') || '<p>Add products in Menu first.</p>';
 }
