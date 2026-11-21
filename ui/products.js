@@ -1,4 +1,4 @@
-/* ui/products.js - Menu management. Each drink can be linked to one ingredient. */
+/* ui/products.js - Menu management. A product has a recipe: the ingredients one serving uses. */
 
 import { $, onClick, dlg, say, sure } from './kit.js';
 import { api } from '../data/api.js';
@@ -15,10 +15,10 @@ async function load() {
     draw();
 }
 
-const ingredientText = p =>
-    p.ingredient
-        ? `${p.ingredient.item} · ${Number(p.qty)} ${p.ingredient.unit || ''}`.trim()
-        : 'Link ingredient';
+const recipeText = p =>
+    p.ingredients.length
+        ? 'Recipe: ' + p.ingredients.map(r => `${r.item.item} ×${Number(r.qty)}`).join(', ')
+        : 'No ingredients linked';
 
 function draw() {
     $('#m').innerHTML = `
@@ -33,11 +33,12 @@ function draw() {
             <p>
                 ${esc(p.name)} ${esc(p.size)}
                 <span>
-                    <button class="sec" data-click="editIngredient" data-id="${esc(p.id)}">${esc(ingredientText(p))}</button>
+                    <button class="sec" data-click="editRecipe" data-id="${esc(p.id)}">Recipe</button>
                     <button class="sec" data-click="editProduct" data-id="${esc(p.id)}">${M(p.price)}</button>
                     <button class="sec" data-click="deleteProduct" data-id="${esc(p.id)}">Delete</button>
                 </span>
-            </p>`).join('')}`;
+            </p>
+            <small class="hint">${esc(recipeText(p))}</small>`).join('')}`;
 }
 
 const find = id => products.find(p => p.id === id);
@@ -69,28 +70,34 @@ onClick('editProduct', async el => {
     await load();
 });
 
-// which ingredient a drink uses, and how much per cup
-onClick('editIngredient', async el => {
+// The recipe: type how much of each ingredient ONE serving uses. Leave blank (or 0) = not used.
+onClick('editRecipe', async el => {
     const p = find(el.dataset.id);
 
-    const v = await dlg(`${p.name} ${p.size}`.trim(), [
-        {
-            label: 'Ingredient used',
-            type: 'select',
-            value: p.item_id || '',
-            options: [{ v: '', t: 'None' }, ...ingredients.map(i => ({ v: i.id, t: `${i.item} (${i.unit || ''})` }))],
-        },
-        { label: 'Amount used per cup', type: 'number', value: p.item_id ? Number(p.qty) : '' },
-    ], { ok: 'Save' });
+    if (!ingredients.length) return say('Add ingredients in Stock first.');
+
+    const current = new Map(p.ingredients.map(r => [r.item_id, Number(r.qty)]));
+
+    const v = await dlg(`Recipe: ${p.name} ${p.size}`.trim(), ingredients.map(i => ({
+        label: `${i.item} used per serving (${i.unit || 'units'})`,
+        type: 'number',
+        value: current.get(i.id) ?? '',
+    })), { ok: 'Save' });
 
     if (!v) return;
 
-    const item_id = v[0] || null;
-    const qty = item_id ? Number(v[1]) : 0;
+    const lines = [];
 
-    if (item_id && !(qty > 0)) return say('Enter how much of the ingredient one cup uses.');
+    for (const [k, i] of ingredients.entries()) {
+        const raw = v[k].trim();
+        if (raw === '') continue;
 
-    await api.put(`/products/${p.id}`, { item_id, qty });
+        const qty = Number(raw);
+        if (!(qty >= 0)) return say(`Enter a valid amount for ${i.item}.`);
+        if (qty > 0) lines.push({ item_id: i.id, qty });
+    }
+
+    await api.put(`/products/${p.id}`, { ingredients: lines });
     await load();
 });
 

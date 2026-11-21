@@ -21,3 +21,5 @@ pre{background:var(--c);padding:12px;border-radius:10px;overflow:auto;font-size:
 #envbar{position:sticky;top:0;z-index:20;background:#b45309;color:#fff;text-align:center;font-size:.75rem;padding:3px 8px}
 #busy{position:fixed;left:8px;right:8px;top:8px;z-index:30;background:var(--ink);color:#fff;border-radius:10px;padding:10px 14px;font-size:.85rem;text-align:center}
 .hint{display:block;color:var(--mut);font-size:.8rem;min-height:1.2em}
+
+.md{max-height:90vh;overflow:auto}
