@@ -1,8 +1,5 @@
-/* data/api.js - the ONLY file that talks to the Laravel API. */
-
 import { getToken, signOut } from './auth.js';
 
-// The UI plugs into these to show a "waking up the server" banner.
 export const hooks = { slow() {}, done() {} };
 
 export class ApiError extends Error {
@@ -23,7 +20,6 @@ function makeUrl(path, query) {
     return url;
 }
 
-// Reads (GET) are retried once if the free server is still waking up.
 async function fetchWithRetry(url, init, canRetry) {
     for (let attempt = 0; ; attempt++) {
         try {

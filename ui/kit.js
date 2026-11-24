@@ -1,24 +1,20 @@
-/* ui/kit.js - small UI toolkit: DOM helpers, dialogs, click/input handling, error display.
-   No inline onclick="..." anywhere: elements carry data-click="name" and handlers are registered here.
-   That keeps the app compatible with a strict Content-Security-Policy. */
-
 import { esc } from '../business/format.js';
 import { hooks } from '../data/api.js';
 
 export const root = document.getElementById('app');
 export const $ = s => document.querySelector(s);
 
-// "waking up the server" banner (free servers sleep after 15 minutes without visitors)
+
 hooks.slow = () => {
     const b = $('#busy');
-    b.textContent = 'Waking up the server… the first request after a quiet spell can take up to a minute.';
+    b.textContent = 'Waking up the server';
     b.hidden = false;
 };
 hooks.done = () => {
     $('#busy').hidden = true;
 };
 
-/* ---- event handlers registered by name ---- */
+
 const registry = { click: {}, input: {}, change: {}, submit: {} };
 
 export const onClick = (name, fn) => { registry.click[name] = fn; };
@@ -38,7 +34,7 @@ for (const type of Object.keys(registry)) {
     });
 }
 
-/* ---- dialogs (replace alert / prompt / confirm) ---- */
+
 export function dlg(title, fields = [], o = {}) {
     const ok = o.ok || 'OK';
     const cancel = o.cancel !== false;
@@ -88,7 +84,7 @@ export function dlg(title, fields = [], o = {}) {
 export const say = message => dlg(message, [], { cancel: false }).then(() => {});
 export const sure = message => dlg(message, [], { ok: 'Yes' }).then(v => v !== null);
 
-// Shows an API error to the cashier. A 401 is handled by the login screen instead.
+
 export function showError(err) {
     if (err?.status === 401) return;
     return say(err?.message || 'Something went wrong. Please try again.');

@@ -1,5 +1,3 @@
-/* ui/customers.js - client list, add customer, profile / repeat last order */
-
 import { $, onClick, onChange, dlg, say, sure } from './kit.js';
 import { api } from '../data/api.js';
 import { loadProducts } from '../business/catalog.js';

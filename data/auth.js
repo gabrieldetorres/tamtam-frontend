@@ -1,5 +1,3 @@
-/* data/auth.js - Supabase is used ONLY for login, logout and password reset.
-   Everything else goes through the Laravel API (data/api.js). */
 
 let client;
 
@@ -12,7 +10,7 @@ function sb() {
 }
 
 export async function getSession() {
-    const { data } = await sb().auth.getSession(); // also refreshes an expired token
+    const { data } = await sb().auth.getSession(); 
     return data.session;
 }
 

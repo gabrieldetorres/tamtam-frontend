@@ -1,5 +1,3 @@
-/* ui/audit.js - read-only activity log (price changes, voids, stock changes, archives) */
-
 import { $ } from './kit.js';
 import { api } from '../data/api.js';
 import { esc, dateTimeText } from '../business/format.js';
