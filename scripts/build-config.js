@@ -17,7 +17,6 @@ const env = process.argv[2] || process.env.APP_ENV ||
 if (!['development', 'staging', 'production'].includes(env)) fail(`Unknown environment "${env}".`);
 
 const file = path.join(root, `.env.${env}`);
-const file = path.join(root, `.env.${env}`);
 const vars = {};
 
 // Local builds read .env.*. Vercel builds use configured environment variables.
