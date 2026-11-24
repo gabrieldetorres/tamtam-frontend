@@ -1,19 +1,15 @@
-/* ui/pos.js - Order screen: customer lookup, cart, void, payment, receipt (PDF).
-   The browser only sends WHICH drinks and HOW MANY (+ cash given).
-   The server works out prices, total, change and stock. */
-
 import { $, onClick, onInput, say, sure, showError } from './kit.js';
 import { api } from '../data/api.js';
 import { loadProducts } from '../business/catalog.js';
-import { state, canMake, servingsLeft, addToCart, changeQty, cartTotal, lineTotal, orderLines, clearOrder } from '../business/cart.js';
+import { state, canMake, servingsLeft, needsRecipe, addToCart, changeQty, cartTotal, lineTotal, orderLines, clearOrder } from '../business/cart.js';
 import { M, esc, newRef } from '../business/format.js';
 import { register, go } from './router.js';
 import { addCustomerDialog } from './customers.js';
 
-let found = [];        // customer search results
-let searchSeq = 0;     // ignores slow, out-of-date search answers
+let found = [];        
+let searchSeq = 0;     
 let searchTimer;
-let checkoutRef = null; // one id per checkout attempt (prevents double orders on retry)
+let checkoutRef = null; 
 let lastReceipt = null;
 
 register('pos', async () => {
@@ -46,12 +42,11 @@ function drawPos() {
     drawCart();
 }
 
-// the grid and cart redraw on their own, so the customer box keeps focus and text
 function drawGrid() {
     $('#pg').innerHTML = state.products.map(p => {
         const ok = canMake(p);
         const left = servingsLeft(p);
-        const note = !ok ? ' (out)' : left <= 5 ? ` · ${left} left` : ''; // warn when a product is running low
+        const note = !ok ? (needsRecipe(p) ? ' (no recipe)' : ' (out)') : left <= 5 ? ` · ${left} left` : ''; // warn when running low
         return `
             <button ${ok ? '' : 'disabled'} data-click="add" data-id="${esc(p.id)}">
                 ${esc(p.name)}
@@ -103,7 +98,7 @@ onClick('qty', el => {
 onInput('findCustomer', el => {
     const q = el.value.trim();
 
-    // typing a different name unlinks the picked customer (so the order cannot go to the wrong person)
+    
     if (state.customer && state.customer.name !== q) state.customer = null;
     drawCustomerInfo();
 
@@ -178,7 +173,7 @@ onClick('voidOrder', async () => {
 /* ---------- payment ---------- */
 
 onClick('pay', () => {
-    checkoutRef = newRef(); // a new checkout; retrying THIS screen reuses the same id
+    checkoutRef = newRef(); 
 
     $('#m').innerHTML = `
         <h2>Total ${M(cartTotal())}</h2>
@@ -223,7 +218,7 @@ onClick('done', async el => {
         await showError(err);
         el.disabled = false;
 
-        // 422 = the server refused (stock or menu changed): reload and let the cashier adjust
+       
         if (err.status === 422) {
             await loadProducts().catch(() => {});
             drawPos();

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    state, setProducts, servingsLeft, canMake, addToCart, changeQty,
+    state, setProducts, servingsLeft, canMake, needsRecipe, addToCart, changeQty,
     cartTotal, orderLines, clearOrder, fillFromOrder,
 } from '../business/cart.js';
 
@@ -21,16 +21,17 @@ const cheeseburger = (b, p, c = cheese('10.000')) => ({
     id: 'p3', name: 'Cheeseburger', size: '', price: '75.00',
     ingredients: [use(b, '1.000'), use(p, '1.000'), use(c, '1.000')],
 });
-const water = { id: 'p2', name: 'Water', size: '', price: '0.10', ingredients: [] };
+const cup = qty => stockItem('i-cup', 'Cup', qty);
+const water = { id: 'p2', name: 'Water', size: '', price: '0.10', ingredients: [use(cup('100.000'), '1.000')] };
 
 function reset(products) {
     clearOrder();
     setProducts(products);
 }
 
-test('a product without ingredients is always available', () => {
+test('a product with a recipe is available while its ingredients last', () => {
     reset([water]);
-    assert.equal(servingsLeft(water), Infinity);
+    assert.equal(servingsLeft(water), 100);
     assert.equal(canMake(water), true);
 });
 
@@ -96,4 +97,25 @@ test('repeat order is reduced to what the stock allows and reports it', () => {
 
     assert.equal(state.cart[0].q, 2);
     assert.deepEqual(skipped, ['Burger (only 2 of 3)', 'Old Product']);
+});
+
+test('a new product with no recipe is greyed out and cannot be sold', () => {
+    const noRecipe = { id: 'p9', name: 'New Burger', size: '', price: '60.00', ingredients: [] };
+    reset([noRecipe]);
+
+    assert.equal(needsRecipe(noRecipe), true);
+    assert.equal(servingsLeft(noRecipe), 0);
+    assert.equal(canMake(noRecipe), false);
+    assert.equal(addToCart('p9'), false);
+    assert.equal(state.cart.length, 0);
+});
+
+test('once a recipe is set the product can be sold', () => {
+    const product = { id: 'p9', name: 'New Burger', size: '', price: '60.00', ingredients: [] };
+    reset([product]);
+    assert.equal(canMake(product), false);
+
+    product.ingredients = [use(bread('10.000'), '1.000'), use(patty('10.000'), '1.000')];
+    assert.equal(needsRecipe(product), false);
+    assert.equal(addToCart('p9'), true);
 });

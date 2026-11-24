@@ -1,5 +1,3 @@
-/* ui/products.js - Menu management. A product has a recipe: the ingredients one serving uses. */
-
 import { $, onClick, dlg, say, sure } from './kit.js';
 import { api } from '../data/api.js';
 import { M, esc } from '../business/format.js';
@@ -15,10 +13,11 @@ async function load() {
     draw();
 }
 
-const recipeText = p =>
+
+const recipeNote = p =>
     p.ingredients.length
         ? 'Recipe: ' + p.ingredients.map(r => `${r.item.item} ×${Number(r.qty)}`).join(', ')
-        : 'No ingredients linked';
+        : '⚠ No recipe: not sold until one is set';
 
 function draw() {
     $('#m').innerHTML = `
@@ -38,7 +37,7 @@ function draw() {
                     <button class="sec" data-click="deleteProduct" data-id="${esc(p.id)}">Delete</button>
                 </span>
             </p>
-            <small class="hint">${esc(recipeText(p))}</small>`).join('')}`;
+            <small class="hint">${esc(recipeNote(p))}</small>`).join('')}`;
 }
 
 const find = id => products.find(p => p.id === id);
@@ -49,8 +48,11 @@ onClick('addProduct', async () => {
 
     if (!name || $('#pp').value === '' || !(price >= 0)) return say('Enter a valid name and price.');
 
-    await api.post('/products', { name, size: $('#ps').value.trim(), price });
+    const created = await api.post('/products', { name, size: $('#ps').value.trim(), price });
     await load();
+
+    
+    await openRecipe(find(created.id));
 });
 
 onClick('editProduct', async el => {
@@ -70,11 +72,8 @@ onClick('editProduct', async el => {
     await load();
 });
 
-// The recipe: type how much of each ingredient ONE serving uses. Leave blank (or 0) = not used.
-onClick('editRecipe', async el => {
-    const p = find(el.dataset.id);
-
-    if (!ingredients.length) return say('Add ingredients in Stock first.');
+async function openRecipe(p) {
+    if (!ingredients.length) return say('Add ingredients in Stock first, then set this product’s recipe.');
 
     const current = new Map(p.ingredients.map(r => [r.item_id, Number(r.qty)]));
 
@@ -99,7 +98,9 @@ onClick('editRecipe', async el => {
 
     await api.put(`/products/${p.id}`, { ingredients: lines });
     await load();
-});
+}
+
+onClick('editRecipe', el => openRecipe(find(el.dataset.id)));
 
 onClick('deleteProduct', async el => {
     if (!(await sure('Delete this product? Past orders keep their details.'))) return;
