@@ -1,6 +1,3 @@
-/* ui/reports.js - Today dashboard, date-range report, CSV download.
-   All the maths happens on the server (in SQL); this screen only displays it. */
-
 import { $, onClick, say } from './kit.js';
 import { api, download } from '../data/api.js';
 import { M, esc, iso, addDays } from '../business/format.js';

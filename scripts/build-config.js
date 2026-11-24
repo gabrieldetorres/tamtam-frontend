@@ -1,7 +1,3 @@
-// Picks the right .env.* file, checks it, and builds the site into dist/.
-// Usage:  node scripts/build-config.js [development|staging|production]
-// On Vercel the environment is chosen from the git branch (main = production,
-// staging = staging, anything else = development).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,7 +30,7 @@ if (fs.existsSync(file)) {
     fail(`${file} does not exist.`);
 }
 
-// real environment variables win over the file (handy for CI or Vercel settings)
+
 const required = ['API_URL', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY'];
 for (const k of [...required, 'STALL_NAME']) if (process.env[k]) vars[k] = process.env[k];
 

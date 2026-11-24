@@ -1,6 +1,3 @@
-/* ui/login.js - login, forgot password, set a new password.
-   There is no "create account": the admin is created by hand in Supabase. */
-
 import { $, root, say, onClick, onSubmit } from './kit.js';
 import { esc } from '../business/format.js';
 import { signIn, sendReset, setPassword, signOutEverywhere } from '../data/auth.js';
@@ -60,7 +57,7 @@ onSubmit('recovery', async () => {
     const { error } = await setPassword(a);
     if (error) return say(error.message);
 
-    await signOutEverywhere(); // sign out every device after a password change
+    await signOutEverywhere(); 
     location.hash = '';
     login();
 });
