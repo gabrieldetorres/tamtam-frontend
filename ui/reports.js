@@ -56,7 +56,11 @@ async function generate() {
     const s = await api.get('/reports/summary', { from, to });
 
     last = { from, to };
-    $('#ro').innerHTML = summaryHtml(s) + '<button class="sec" data-click="csv">Download CSV</button>';
+    $('#ro').innerHTML = summaryHtml(s) + `
+    <div class="row">
+        <button class="sec" data-click="csv">Download CSV</button>
+        <button class="sec" data-click="sheets">Export to Google Sheets</button>
+    </div>`;
 }
 
 onClick('range', el => {
@@ -68,3 +72,13 @@ onClick('range', el => {
 onClick('generate', generate);
 
 onClick('csv', () => download('/reports/export', last, `sales-${last.from}-to-${last.to}.csv`));
+
+onClick('sheets', async () => {
+    if (!last.from || !last.to) {
+        return say('Generate a report first.');
+    }
+
+    await api.post('/reports/google-sheets', last);
+
+    say('Sales report exported successfully to Google Sheets!');
+});
