@@ -17,14 +17,17 @@ const env = process.argv[2] || process.env.APP_ENV ||
 if (!['development', 'staging', 'production'].includes(env)) fail(`Unknown environment "${env}".`);
 
 const file = path.join(root, `.env.${env}`);
-if (!fs.existsSync(file)) fail(`${file} does not exist.`);
-
-
 const vars = {};
-for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
-    if (line.trim().startsWith('#')) continue;
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
-    if (m) vars[m[1]] = m[2].replace(/^["']|["']$/g, '');
+
+// Local builds read .env.*. Vercel builds use configured environment variables.
+if (fs.existsSync(file)) {
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+        if (line.trim().startsWith('#')) continue;
+        const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+        if (m) vars[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
+} else if (!process.env.VERCEL) {
+    fail(`${file} does not exist.`);
 }
 
 
